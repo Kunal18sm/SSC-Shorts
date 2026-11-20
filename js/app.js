@@ -151,9 +151,9 @@ function renderActiveShort() {
 
       <!-- Right Action Column (Vertically Centered - Transparent & Amber Bookmark) -->
       <div class="right-actions">
-        <!-- Bookmark / Save (Gold/Amber icon) -->
+        <!-- Bookmark / Save (Hollow Outline: Beech me Khali, Outline White) -->
         <button class="action-btn ${isBookmarked ? 'bookmarked' : ''}" id="btnBookmark" title="${isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}">
-          <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </button>
 
         <!-- Random Next Short -->
