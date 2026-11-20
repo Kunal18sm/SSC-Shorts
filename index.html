@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SSC Study Shorts</title>
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SSC Shorts">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Unified Sleek Header -->
+  <header class="app-nav">
+    <div class="nav-left">
+      <div class="logo" onclick="loadCategory('all')">
+        <!-- Modern YouTube Shorts S-Loop Style Icon -->
+        <svg class="shorts-logo-icon" viewBox="0 0 24 24">
+          <path d="M17.77 10.32l-1.2-.5L18 9.06a3.74 3.74 0 0 0-3.5-5.36c-.95 0-1.85.38-2.52 1.05L5.7 10.98a3.75 3.75 0 0 0 2.65 6.4c.95 0 1.85-.38 2.52-1.05l1.2.5-1.43.76a3.75 3.75 0 0 0 3.5 5.36 3.7 3.7 0 0 0 2.52-1.05l6.28-6.23a3.75 3.75 0 0 0-2.65-6.4zM10 14.65v-5.3l4.6 2.65L10 14.65z"/>
+        </svg>
+        <span class="logo-title">SSC<strong>Shorts</strong></span>
+      </div>
+    </div>
+
+    <!-- Category Chips inside header (Zero Emojis) -->
+    <div class="category-scroll">
+      <button class="chip active" data-category="all">All</button>
+      <button class="chip" data-category="maths">Maths</button>
+      <button class="chip" data-category="reasoning">Reasoning</button>
+      <button class="chip" data-category="english">English</button>
+      <button class="chip" data-category="gk">GK & GS</button>
+      <button class="chip" data-category="animals">Animals</button>
+      <button class="chip" data-category="saved">Saved</button>
+    </div>
+
+    <div class="nav-right">
+      <!-- Random Shuffle Button -->
+      <button class="nav-icon-btn" id="shuffleBtn" title="Shuffle Feed">
+        <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+      </button>
+
+      <!-- Install App Button -->
+      <button class="nav-icon-btn install-btn" id="installAppBtn" title="Install App" style="display: none;">
+        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <main class="shorts-viewport">
+    <div class="shorts-feed" id="shortsFeed">
+      <!-- Short player cards injected dynamically -->
+    </div>
+
+    <!-- Floating Navigation Arrows for Desktop -->
+    <div class="floating-nav">
+      <button class="nav-arrow-btn" id="prevShortBtn" title="Previous Short">
+        <svg style="width:24px;height:24px;fill:#fff;" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+      </button>
+      <button class="nav-arrow-btn" id="nextShortBtn" title="Next Short">
+        <svg style="width:24px;height:24px;fill:#fff;" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toast">Saved to Bookmarks</div>
+
+  <!-- Scripts -->
+  <script src="js/shorts-data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

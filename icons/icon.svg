@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#0f0f0f"/>
+  <rect x="40" y="40" width="432" height="432" rx="90" fill="#FF0000"/>
+  <polygon points="210,165 210,347 360,256" fill="#FFFFFF"/>
+  <rect x="290" y="25" width="180" height="80" rx="40" fill="#FFD700" stroke="#0F0F0F" stroke-width="6"/>
+  <text x="380" y="78" font-family="Arial, sans-serif" font-weight="900" font-size="44" fill="#000000" text-anchor="middle">SSC</text>
+</svg>
