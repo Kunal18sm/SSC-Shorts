@@ -1,16 +1,31 @@
 // Infinite Random SSC Study Shorts Controller
 
 let currentCategory = 'all';
+let previousCategory = 'all';
 let currentQueueIndex = 0;
 let shortQueue = [];
 
 // DOM Elements
 const shortsFeedEl = document.getElementById('shortsFeed');
-const categoryChips = document.querySelectorAll('.chip');
+const categorySelector = document.getElementById('categorySelector');
+const categoryDropdownBtn = document.getElementById('categoryDropdownBtn');
+const categoryDropdownMenu = document.getElementById('categoryDropdownMenu');
+const selectedCategoryLabel = document.getElementById('selectedCategoryLabel');
+const dropdownItems = document.querySelectorAll('.dropdown-item');
+const navSavedBtn = document.getElementById('navSavedBtn');
 const prevBtn = document.getElementById('prevShortBtn');
 const nextBtn = document.getElementById('nextShortBtn');
-const shuffleBtn = document.getElementById('shuffleBtn');
 const toastEl = document.getElementById('toast');
+
+const categoryDisplayNames = {
+  'all': 'All Topics',
+  'maths': 'Maths',
+  'reasoning': 'Reasoning',
+  'english': 'English',
+  'gk': 'GK & GS',
+  'animals': 'Animals',
+  'saved': 'Saved'
+};
 
 // Initialize
 function initApp() {
@@ -28,13 +43,25 @@ function replenishQueue(category) {
 
 // Switch category or reset
 function loadCategory(category) {
+  if (category !== 'saved') {
+    previousCategory = category;
+  }
   currentCategory = category;
   currentQueueIndex = 0;
 
-  // Update chip active states
-  categoryChips.forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.category === category);
+  // Update dropdown label and active state
+  if (selectedCategoryLabel && category !== 'saved') {
+    selectedCategoryLabel.textContent = categoryDisplayNames[category] || 'Topics';
+  }
+
+  dropdownItems.forEach(item => {
+    item.classList.toggle('active', item.dataset.category === category);
   });
+
+  // Update Nav Saved Button active state
+  if (navSavedBtn) {
+    navSavedBtn.classList.toggle('active', category === 'saved');
+  }
 
   if (category === 'saved') {
     renderSavedGridView();
@@ -59,10 +86,12 @@ function renderSavedGridView() {
   if (savedItems.length === 0) {
     shortsFeedEl.innerHTML = `
       <div class="empty-state">
-        <svg viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
         <h4>No Saved Shorts</h4>
         <p>Shorts dekhte waqt Bookmark icon dabayein taaki wo yahan show hon.</p>
-        <button class="chip active" onclick="loadCategory('all')" style="margin-top:14px; padding: 8px 18px;">Back to Feed</button>
+        <button class="category-dropdown-btn" onclick="loadCategory('all')" style="margin-top:14px; padding: 8px 18px;">Back to Feed</button>
       </div>
     `;
     return;
@@ -149,7 +178,7 @@ function renderActiveShort() {
       <!-- Gesture & Wheel Scroll Overlay -->
       <div class="video-gesture-layer" id="gestureLayer" title="Click to Play/Pause • Scroll for Next"></div>
 
-      <!-- Right Action Column (Vertically Centered - Transparent & Amber Bookmark) -->
+      <!-- Right Action Column (Vertically Centered - Transparent & Hollow Outline Bookmark) -->
       <div class="right-actions">
         <!-- Bookmark / Save (Hollow Outline: Beech me Khali, Outline White) -->
         <button class="action-btn ${isBookmarked ? 'bookmarked' : ''}" id="btnBookmark" title="${isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}">
@@ -242,18 +271,38 @@ function nextRandomShort() {
 
 // Setup Gestures & Events
 function setupEventListeners() {
-  // Category Chips
-  categoryChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      loadCategory(chip.dataset.category);
+  // Dropdown Category Selector
+  if (categoryDropdownBtn && categorySelector) {
+    categoryDropdownBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      categorySelector.classList.toggle('open');
     });
-  });
 
-  // Top Shuffle button
-  if (shuffleBtn) {
-    shuffleBtn.addEventListener('click', () => {
-      loadCategory(currentCategory);
-      showToast('Feed Reshuffled');
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!categorySelector.contains(e.target)) {
+        categorySelector.classList.remove('open');
+      }
+    });
+
+    dropdownItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cat = item.dataset.category;
+        categorySelector.classList.remove('open');
+        loadCategory(cat);
+      });
+    });
+  }
+
+  // Nav Saved Button (Dedicated toggle)
+  if (navSavedBtn) {
+    navSavedBtn.addEventListener('click', () => {
+      if (currentCategory === 'saved') {
+        loadCategory(previousCategory || 'all');
+      } else {
+        loadCategory('saved');
+      }
     });
   }
 

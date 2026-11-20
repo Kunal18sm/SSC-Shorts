@@ -53,43 +53,45 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Aesthetic Logo Branding */
+/* Perfectly Symmetrical Logo Branding */
 .logo {
   display: flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
   cursor: pointer;
+  user-select: none;
 }
 
 .logo-icon-wrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ff1744 0%, #c50000 100%);
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #ff0000;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(255, 23, 68, 0.45);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 2px 8px rgba(255, 0, 0, 0.4);
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .logo:hover .logo-icon-wrap {
-  transform: scale(1.08) rotate(-4deg);
-  box-shadow: 0 4px 16px rgba(255, 23, 68, 0.65);
+  transform: scale(1.06);
 }
 
 .shorts-logo-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   fill: #ffffff;
+  display: block;
 }
 
 .logo-brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 3px;
+  line-height: 1;
 }
 
 .brand-ssc {
@@ -113,7 +115,7 @@ html, body {
 .brand-shorts {
   font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 1.4px;
+  letter-spacing: 1.3px;
   color: #e8e8e8;
   text-transform: uppercase;
   position: relative;
@@ -122,7 +124,7 @@ html, body {
 .brand-shorts::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: -3px;
   left: 0;
   width: 100%;
   height: 2px;
@@ -130,47 +132,118 @@ html, body {
   border-radius: 2px;
 }
 
-/* Category Filter Chips inside Nav (No Emojis) */
-.category-scroll {
+/* Category Dropdown Selector (Center of Navbar) */
+.category-selector-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-dropdown-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
-  overflow-x: auto;
-  white-space: nowrap;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  flex: 1;
-  max-width: 600px;
-  padding: 0 4px;
-}
-
-.category-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.chip {
-  background: var(--chip-bg);
-  color: #ededed;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 5px 14px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: 500;
   cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition: all 0.2s ease;
-  flex-shrink: 0;
   outline: none;
 }
 
-.chip:hover {
-  background: var(--chip-hover);
+.category-dropdown-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-.chip.active {
-  background: #ffffff;
-  color: #000000;
-  border-color: #ffffff;
+.dropdown-chevron {
+  width: 15px;
+  height: 15px;
+  fill: #bbb;
+  transition: transform 0.25s ease;
+}
+
+.category-selector-wrap.open .dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.category-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  background: rgba(22, 22, 22, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 150px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.category-selector-wrap.open .category-dropdown-menu {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  color: #dedede;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  outline: none;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.dropdown-item.active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
   font-weight: 700;
+}
+
+.dropdown-item.active::after {
+  content: '✓';
+  font-size: 0.8rem;
+  color: #ff3b30;
+  font-weight: bold;
+}
+
+.nav-icon-btn.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+}
+
+.nav-icon-btn.active svg {
+  fill: #ffffff;
 }
 
 /* Nav Action Buttons */
