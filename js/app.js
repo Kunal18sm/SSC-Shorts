@@ -242,10 +242,12 @@ function renderActiveShort() {
 
       <!-- Right Action Column (Vertically Centered - Transparent & Hollow Outline Bookmark) -->
       <div class="right-actions">
-        <!-- Bookmark / Save (Hollow Outline: Beech me Khali, Outline White) -->
+        <!-- Bookmark / Save (Hidden in Saved Shorts playlist - user deletes from Saved Grid) -->
+        ${currentCategory !== 'saved' ? `
         <button class="action-btn ${isBookmarked ? 'bookmarked' : ''}" id="btnBookmark" title="${isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}">
           <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </button>
+        ` : ''}
 
         <!-- Sound Mute/Unmute Toggle Button -->
         <button class="action-btn" id="btnSound" title="${userSoundEnabled ? 'Mute Audio' : 'Unmute Audio'}">
@@ -280,27 +282,14 @@ function renderActiveShort() {
   }
 
   // Action events
-  document.getElementById('btnBookmark').addEventListener('click', () => {
-    const isSaved = ShortsStore.toggleBookmark(short.id);
-    showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-    if (currentCategory === 'saved') {
-      const bookmarks = ShortsStore.getBookmarks();
-      const allShorts = ShortsStore.getAllShorts();
-      const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
-      if (savedItems.length === 0) {
-        isSavedPlaying = false;
-        renderSavedGridView();
-        return;
-      }
-      shortQueue = savedItems;
-      if (currentQueueIndex >= shortQueue.length) {
-        currentQueueIndex = 0;
-      }
+  const btnBookmark = document.getElementById('btnBookmark');
+  if (btnBookmark) {
+    btnBookmark.addEventListener('click', () => {
+      const isSaved = ShortsStore.toggleBookmark(short.id);
+      showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
       renderActiveShort();
-    } else {
-      renderActiveShort();
-    }
-  });
+    });
+  }
 
   // Sound toggle button click
   const btnSound = document.getElementById('btnSound');
@@ -382,25 +371,10 @@ function renderActiveShort() {
 
     gestureLayer.addEventListener('dblclick', () => {
       clearTimeout(clickTimeout);
+      if (currentCategory === 'saved') return; // Cannot accidentally remove in saved player
       const isSaved = ShortsStore.toggleBookmark(short.id);
       showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-      if (currentCategory === 'saved') {
-        const bookmarks = ShortsStore.getBookmarks();
-        const allShorts = ShortsStore.getAllShorts();
-        const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
-        if (savedItems.length === 0) {
-          isSavedPlaying = false;
-          renderSavedGridView();
-          return;
-        }
-        shortQueue = savedItems;
-        if (currentQueueIndex >= shortQueue.length) {
-          currentQueueIndex = 0;
-        }
-        renderActiveShort();
-      } else {
-        renderActiveShort();
-      }
+      renderActiveShort();
     });
   }
 }
@@ -787,27 +761,12 @@ function setupEventListeners() {
       const gesture = document.getElementById('gestureLayer');
       if (gesture) gesture.click();
     } else if (e.key.toLowerCase() === 'b') {
+      if (currentCategory === 'saved') return; // Cannot accidentally remove in saved player
       const short = shortQueue[currentQueueIndex];
       if (short) {
         const state = ShortsStore.toggleBookmark(short.id);
         showToast(state ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-        if (currentCategory === 'saved') {
-          const bookmarks = ShortsStore.getBookmarks();
-          const allShorts = ShortsStore.getAllShorts();
-          const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
-          if (savedItems.length === 0) {
-            isSavedPlaying = false;
-            renderSavedGridView();
-            return;
-          }
-          shortQueue = savedItems;
-          if (currentQueueIndex >= shortQueue.length) {
-            currentQueueIndex = 0;
-          }
-          renderActiveShort();
-        } else {
-          renderActiveShort();
-        }
+        renderActiveShort();
       }
     }
   });
