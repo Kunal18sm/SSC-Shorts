@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ssc-shorts-v18';
+const CACHE_NAME = 'ssc-shorts-v19';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

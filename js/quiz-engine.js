@@ -1,4 +1,5 @@
 // SSC Daily Quiz Engine (Powered by QuizeApp 8,700+ Question Bank)
+// Excludes Math completely per user requirement; focuses on English & General Knowledge
 
 const QuizEngine = {
   DAILY_QUOTA_COUNT: 30,
@@ -6,17 +7,23 @@ const QuizEngine = {
   isHindiMode: false,
   translationCache: {},
 
-  // Get or initialize Today's 30 Questions Quota
+  // Get or initialize Today's 30 Questions Quota (Strictly NO Math)
   getTodayQuota() {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const storedDate = localStorage.getItem('ssc_daily_quiz_date');
+    const storedDate = localStorage.getItem('ssc_daily_quiz_date_v3');
     let quota = [];
 
     try {
-      const savedQuota = localStorage.getItem('ssc_daily_quiz_quota');
+      const savedQuota = localStorage.getItem('ssc_daily_quiz_quota_v3');
       if (savedQuota && storedDate === todayStr) {
         quota = JSON.parse(savedQuota);
-        if (Array.isArray(quota) && quota.length > 0) {
+        // Ensure no math questions exist in saved quota
+        const hasMath = quota.some(q => {
+          const cat = (q.category || '').toLowerCase();
+          const sub = (q.subject || '').toLowerCase();
+          return cat.includes('math') || sub === 'math';
+        });
+        if (Array.isArray(quota) && quota.length > 0 && !hasMath) {
           return quota;
         }
       }
@@ -26,13 +33,13 @@ const QuizEngine = {
 
     // Refresh quota for a new day!
     quota = this.generateFreshQuota();
-    localStorage.setItem('ssc_daily_quiz_date', todayStr);
-    localStorage.setItem('ssc_daily_quiz_quota', JSON.stringify(quota));
-    localStorage.setItem('ssc_daily_quiz_progress', JSON.stringify({}));
+    localStorage.setItem('ssc_daily_quiz_date_v3', todayStr);
+    localStorage.setItem('ssc_daily_quiz_quota_v3', JSON.stringify(quota));
+    localStorage.setItem('ssc_daily_quiz_progress_v3', JSON.stringify({}));
     return quota;
   },
 
-  // Generate 30 well-balanced questions from window.QUIZEE_ALL_QUESTIONS
+  // Generate 30 well-balanced questions from window.QUIZEE_ALL_QUESTIONS (NO MATH)
   generateFreshQuota() {
     if (!window.QUIZEE_ALL_QUESTIONS) {
       console.warn('QUIZEE_ALL_QUESTIONS not loaded');
@@ -42,22 +49,28 @@ const QuizEngine = {
     const data = window.QUIZEE_ALL_QUESTIONS;
     const selected = [];
 
-    // Distribution across subjects for rich diversity:
-    // English: 7, Math: 7, Polity: 4, History: 4, Static GK: 4, Geography: 2, Biology: 2 = 30 total
+    // STRICT NON-MATH DISTRIBUTION:
+    // English: 10, Static GK: 6, Polity: 4, History: 4, Geography: 3, Biology: 2, Economics: 1 = 30 total
     const distribution = [
-      { key: 'english', count: 7 },
-      { key: 'math', count: 7 },
+      { key: 'english', count: 10 },
+      { key: 'static_gk', count: 6 },
       { key: 'polity', count: 4 },
       { key: 'history', count: 4 },
-      { key: 'static_gk', count: 4 },
-      { key: 'geography', count: 2 },
-      { key: 'biology', count: 2 }
+      { key: 'geography', count: 3 },
+      { key: 'biology', count: 2 },
+      { key: 'economics', count: 1 }
     ];
 
     distribution.forEach(dist => {
       const list = data[dist.key] || [];
       if (list.length > 0) {
-        const shuffled = [...list].sort(() => 0.5 - Math.random());
+        // Filter out any math questions
+        const nonMathList = list.filter(q => {
+          const cat = (q.category || '').toLowerCase();
+          const sub = (q.subject || '').toLowerCase();
+          return !cat.includes('math') && sub !== 'math';
+        });
+        const shuffled = [...nonMathList].sort(() => 0.5 - Math.random());
         selected.push(...shuffled.slice(0, dist.count));
       }
     });
@@ -69,20 +82,29 @@ const QuizEngine = {
   // Get answer progress for today
   getTodayProgress() {
     try {
-      const p = localStorage.getItem('ssc_daily_quiz_progress');
+      const p = localStorage.getItem('ssc_daily_quiz_progress_v3');
       return p ? JSON.parse(p) : {};
     } catch (e) {
       return {};
     }
   },
 
+  getScore() {
+    const progress = this.getTodayProgress();
+    let score = 0;
+    Object.values(progress).forEach(item => {
+      if (item && item.isCorrect) score++;
+    });
+    return score;
+  },
+
   saveAnswer(questionId, selectedIdx, isCorrect) {
     const progress = this.getTodayProgress();
     progress[questionId] = { selectedIdx, isCorrect, answeredAt: Date.now() };
-    localStorage.setItem('ssc_daily_quiz_progress', JSON.stringify(progress));
+    localStorage.setItem('ssc_daily_quiz_progress_v3', JSON.stringify(progress));
   },
 
-  // Pick question matching active category, or next in daily 30 quota
+  // Pick question matching active category, or next in daily 30 quota (NO MATH)
   getNextQuizQuestion(category = 'all', quizNumber = 0) {
     const quota = this.getTodayQuota();
     if (!quota || quota.length === 0) return null;
@@ -90,16 +112,16 @@ const QuizEngine = {
     // If specific category selected, prefer matching subject
     if (category !== 'all' && category !== 'animals') {
       const catMap = {
-        'maths': ['math'],
-        'reasoning': ['math'], // Math tricks / reasoning
         'english': ['english'],
         'gk': ['polity', 'history', 'static_gk', 'geography', 'biology', 'economics']
       };
-      const allowedKeys = catMap[category] || [];
+      const allowedKeys = catMap[category] || ['english', 'static_gk', 'polity', 'history'];
       const matchingFromQuota = quota.filter(q => {
         if (!q.category) return false;
         const catLower = q.category.toLowerCase();
         const subLower = (q.subject || '').toLowerCase();
+        // Never allow math
+        if (catLower.includes('math') || subLower === 'math') return false;
         return allowedKeys.some(k => catLower.includes(k) || subLower.includes(k));
       });
       if (matchingFromQuota.length > 0) {

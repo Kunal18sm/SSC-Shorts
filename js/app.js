@@ -353,7 +353,7 @@ function renderActiveShort() {
   }
 }
 
-// Render QuizeApp Native SSC Quiz Card (Exact QuizeApp Look & Feel)
+// Render QuizeApp Native SSC Quiz Card (Matching Image & Exact QuizeApp Theme)
 function renderQuizCard(q) {
   // Clear any existing video progress timer
   clearInterval(window._progressTimer);
@@ -362,6 +362,8 @@ function renderQuizCard(q) {
   const qIndexInQuota = quota.findIndex(item => item.id === q.id);
   const displayQNum = qIndexInQuota >= 0 ? qIndexInQuota + 1 : ((currentQueueIndex % 30) + 1);
   const isHindi = QuizEngine.isHindiMode;
+  const score = QuizEngine.getScore();
+  const progressPct = Math.round((displayQNum / 30) * 100);
 
   // Prepare question text and options based on current language mode
   let displayQ = q.question;
@@ -390,54 +392,75 @@ function renderQuizCard(q) {
   }
 
   const badges = ['A', 'B', 'C', 'D'];
-  const categoryTag = q.category || (q.subject ? q.subject.toUpperCase() : 'SSC EXAM');
+  const fullCategory = q.category || (q.subject ? q.subject.toUpperCase() : 'SSC EXAM');
+  const catParts = fullCategory.split(':');
+  const drillSubject = catParts.length > 1 ? catParts[1].trim() : fullCategory;
+  const drillTitle = `${drillSubject} • Rapid Drill`;
+  const categoryTag = fullCategory.toUpperCase();
 
   shortsFeedEl.innerHTML = `
     <div class="short-card">
       <div class="quiz-card-wrapper" id="quizCardWrapper">
-        <!-- Top bar with Quota & Hindi Translation -->
-        <div class="quiz-top-bar">
-          <div class="quiz-quota-badge">
-            <span>📝</span> Daily Quiz: ${displayQNum}/30
-          </div>
-          <button class="btn-test-translate ${isHindi ? 'active-hindi' : ''}" id="btnQuizTranslate">
-            ${isHindi ? 'A / अ English' : 'अ / A Hindi'}
-          </button>
-        </div>
-
-        <!-- Question Card -->
-        <div class="web-question-card">
-          <span class="question-category-tag">${categoryTag}</span>
-          <div class="question-text-content" id="quizQuestionText">${displayQ}</div>
-          ${q.diagram ? `<div class="web-question-diagram">${q.diagram}</div>` : ''}
-        </div>
-
-        <!-- Options Grid -->
-        <div class="web-options-grid" id="quizOptionsGrid">
-          ${displayOpts.map((opt, i) => `
-            <button class="web-option-btn" data-index="${i}">
-              <span class="web-option-badge">${badges[i]}</span>
-              <span class="web-option-text">${opt}</span>
-              <span class="web-option-feedback-icon" id="fb_icon_${i}"></span>
+        <div class="quiz-modal-window">
+          <!-- Header (Matching Image Exactly) -->
+          <div class="web-test-header">
+            <button class="btn-test-exit" id="btnQuizExit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              <span>Exit Test</span>
             </button>
-          `).join('')}
-        </div>
-
-        <!-- Solution & Explanation Box (Slides open on answer) -->
-        <div class="web-explanation-box" id="quizExplanationBox">
-          <div class="active-explanation-card">
-            <div class="active-exp-header">
-              <span class="active-exp-title">💡 Solution & Short Trick</span>
-              <span class="active-exp-pill">${categoryTag.split(':')[0]}</span>
+            <div class="test-header-center">
+              <div class="test-header-title" id="webTestHeaderTitle">${drillTitle}</div>
+              <div class="test-header-progress" id="webTestHeaderProgress">Q ${displayQNum} of 30</div>
             </div>
-            <div class="active-exp-content" id="quizExplanationContent">${q.explanation || 'Option ' + badges[q.correctIndex] + ' is the correct answer.'}</div>
+            <div class="test-header-right">
+              <span class="test-score-pill" id="webTestScorePill">Score: ${score}</span>
+              <button class="btn-test-translate ${isHindi ? 'active-hindi' : ''}" id="btnQuizTranslate">
+                ${isHindi ? 'A / अ English' : 'अ / A Hindi'}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- Footer Actions -->
-        <div class="quiz-footer-actions">
-          <button class="btn-quiz-skip" id="btnQuizSkip" onclick="nextShort()">Skip Quiz ➔</button>
-          <button class="btn-quiz-next" id="btnQuizNext" onclick="nextShort()">Next Short ➔</button>
+          <!-- Horizontal Progress Bar with Orange Fill -->
+          <div class="web-test-progress-bar">
+            <div class="web-test-progress-fill" style="width: ${progressPct}%;"></div>
+          </div>
+
+          <!-- Active Test Body -->
+          <div class="web-test-body" id="webTestBody">
+            <div class="web-question-card">
+              <span class="question-category-tag">${categoryTag}</span>
+              <div class="question-text-content" id="quizQuestionText">${displayQ}</div>
+              ${q.diagram ? `<div class="web-question-diagram">${q.diagram}</div>` : ''}
+            </div>
+
+            <!-- Options Grid -->
+            <div class="web-options-grid" id="quizOptionsGrid">
+              ${displayOpts.map((opt, i) => `
+                <button class="web-option-btn" data-index="${i}">
+                  <span class="web-option-badge">${badges[i]}</span>
+                  <span class="web-option-text">${opt}</span>
+                  <span class="web-option-feedback-icon" id="fb_icon_${i}"></span>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Solution & Explanation Box (Slides open on answer) -->
+            <div class="web-explanation-box" id="quizExplanationBox">
+              <div class="active-explanation-card">
+                <div class="active-exp-header">
+                  <span class="active-exp-title">💡 Solution & Short Trick</span>
+                  <span class="active-exp-pill">${catParts[0]}</span>
+                </div>
+                <div class="active-exp-content" id="quizExplanationContent">${q.explanation || 'Option ' + badges[q.correctIndex] + ' is the correct answer.'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Test Footer Action Bar -->
+          <div class="web-test-footer" id="webTestFooter">
+            <button class="btn-test-skip" id="btnQuizSkip">Skip Question</button>
+            <button class="btn-test-next" id="btnQuizNext" disabled>Next ➔</button>
+          </div>
         </div>
       </div>
     </div>
@@ -449,6 +472,7 @@ function renderQuizCard(q) {
   const explanationBox = document.getElementById('quizExplanationBox');
   const btnNext = document.getElementById('btnQuizNext');
   const btnSkip = document.getElementById('btnQuizSkip');
+  const btnExit = document.getElementById('btnQuizExit');
   const btnTranslate = document.getElementById('btnQuizTranslate');
 
   // Option Click
@@ -484,28 +508,40 @@ function renderQuizCard(q) {
         showToast('Wrong Answer ❌');
       }
 
+      // Update score pill
+      const scorePill = document.getElementById('webTestScorePill');
+      if (scorePill) scorePill.textContent = `Score: ${QuizEngine.getScore()}`;
+
       // Show solution box (Card stays on screen as user requested!)
       if (explanationBox) {
         explanationBox.classList.add('show');
         explanationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
 
-      // Highlight Next button to invite user to proceed when ready
+      // Enable and highlight Next button
       if (btnNext) {
+        btnNext.removeAttribute('disabled');
+        btnNext.classList.add('active');
         btnNext.focus();
-        btnNext.style.transform = 'scale(1.04)';
       }
     });
   });
 
-  // Next Short Click
+  // Next Question / Short Click
   if (btnNext) {
-    btnNext.addEventListener('click', () => nextShort());
+    btnNext.addEventListener('click', () => {
+      nextShort();
+    });
   }
 
-  // Skip Quiz Click
+  // Skip Question Click
   if (btnSkip) {
     btnSkip.addEventListener('click', () => nextShort());
+  }
+
+  // Exit Test Click
+  if (btnExit) {
+    btnExit.addEventListener('click', () => nextShort());
   }
 
   // Hindi / English Translate Toggle Click
