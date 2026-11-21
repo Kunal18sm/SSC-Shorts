@@ -1,0 +1,48 @@
+name: Daily SSC Shorts Auto-Updater
+
+on:
+  schedule:
+    # Runs everyday at 00:00 UTC (05:30 AM IST)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab anytime!
+
+permissions:
+  contents: write
+
+jobs:
+  update-shorts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install yt-dlp
+
+      - name: Fetch and Verify Fresh Shorts
+        run: |
+          python .github/scripts/fetch_daily_shorts.py
+
+      - name: Commit and Push Updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add js/shorts-data.js service-worker.js
+          if git diff --staged --quiet; then
+            echo "No new shorts added or changes detected."
+          else
+            git commit -m "Auto-update: Added fresh verified SSC shorts [skip ci]"
+            git push origin main
+          fi

@@ -1,7 +1,535 @@
-// Unlimited Random SSC Study Shorts Pool
-// Total 120+ Curated Study Videos - Auto-Shuffled & Infinite
+// Massive Micro-Topics SSC Study Shorts Pool
+// Total 174+ Verified Vertical Shorts
 
 const SSC_SHORTS_POOL = [
+  {
+    "id": "NHiqHWesFpg",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "zE04DEjnt3s",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "uZ3ABj_JA1Y",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "QigIGRoIC6s",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "bbC-y1rTkkQ",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "VLdlnw-u4eg",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "UrxhbsFE0VI",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "m4HwaCwQDOw",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "eiRiU1PmufM",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "W6rFZzMBxVA",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "QsYh3pohiPU",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "uTGckHqSlnE",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "Y-tsdAS-_5U",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "zu9g_jfq3L4",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "DAj_zcKu71w",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "jgDDUf_WCk4",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "-wIDVv51DIs",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "Rw-BWqNjao0",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "Hs1syyrRCxU",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "CH5_cZAgcK0",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "Ij8oTWdvgfg",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "qAm0AHqNxO0",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "X74-6PL7g20",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "yH8UrkpxM8w",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths"
+  },
+  {
+    "id": "zcUFkDeWXCY",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "9G0cu1FlfnU",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "Ge505KFnuY4",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "aqx1IWu4Ftk",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "XD3TUxNsTYc",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "wpOkYNMzXfA",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "in-UKz-yeO0",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "FryJES5vOn0",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "7KJKHkFk7Uo",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "_hqKdgntNAM",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "d0-t8QWb8jc",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "1fixq6_GCWI",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "FKLjh-hnqgI",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "TODFBN9KhmE",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "Yz0OfAPn8Ig",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "288DtxwvHgM",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "4USJK2S2S8k",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning"
+  },
+  {
+    "id": "HjYUIoOgvfQ",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "7pLWYimXSW8",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "umxM3EGXntY",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "tRBJL3GL_I8",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "68Kk9nu3aas",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "zUEfaas_SCw",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "7At5OI2ngoU",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "g5s24i1Q2_w",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "TCWaEttDjZc",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "S6NU02jXfxQ",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "y3dZeAXf9Z0",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "UOY1jRyfP_M",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "63j2QzIFrKc",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "dCecsZQ4uWk",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "zn6qV48UgQM",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "YB9A29RZqgc",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English"
+  },
+  {
+    "id": "_nMXg5Vl5TU",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "BsQnnc6c8R0",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "LnpfYzfr_Aw",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "15Q0u2tImc8",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "C7Wj6yHDuoY",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "0I7n3MjZSpQ",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "gcsRoL49bcM",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "DnHECBTFX1M",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "vc78butPXnY",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "8tEcZbcE1Eg",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "LHPxRpSxwKM",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "stoDCstRCpA",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "6cuPC0dbZzA",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "lAq5UqGvs1k",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "YXZL3cHfc0A",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "0FK5UaY-giE",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "LgEdKCfnmy4",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "y1ahgANmiWM",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "K6366dAb4Ak",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "ahz2BuXZyUc",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "9MRGtX2umu0",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "kczuvRJ9pck",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "Nh1z5VMLUPI",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC Gk"
+  },
+  {
+    "id": "S-40Fwpsh1c",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "zWJdq9SWggI",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "B0pb-59Gzsk",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "jBEEsLeKoUM",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "ylHFEksDA_w",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "KjtVyjHytVY",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "KBWTBDuqZjg",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
+  {
+    "id": "mkN5pblyBoU",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "SSC Animals"
+  },
   {
     "id": "FkdZX79eMCQ",
     "category": "maths",
@@ -28,12 +556,6 @@ const SSC_SHORTS_POOL = [
   },
   {
     "id": "0xF065H77JE",
-    "category": "maths",
-    "categoryLabel": "Maths",
-    "author": "SSC Maths Lab"
-  },
-  {
-    "id": "NHiqHWesFpg",
     "category": "maths",
     "categoryLabel": "Maths",
     "author": "SSC Maths Lab"
@@ -159,12 +681,6 @@ const SSC_SHORTS_POOL = [
     "author": "SSC Reasoning Lab"
   },
   {
-    "id": "9G0cu1FlfnU",
-    "category": "reasoning",
-    "categoryLabel": "Reasoning",
-    "author": "SSC Reasoning Lab"
-  },
-  {
     "id": "rpk3gMHek5M",
     "category": "reasoning",
     "categoryLabel": "Reasoning",
@@ -201,12 +717,6 @@ const SSC_SHORTS_POOL = [
     "author": "SSC Reasoning Lab"
   },
   {
-    "id": "7KJKHkFk7Uo",
-    "category": "reasoning",
-    "categoryLabel": "Reasoning",
-    "author": "SSC Reasoning Lab"
-  },
-  {
     "id": "XmKa4wtLuN0",
     "category": "reasoning",
     "categoryLabel": "Reasoning",
@@ -223,18 +733,6 @@ const SSC_SHORTS_POOL = [
     "category": "reasoning",
     "categoryLabel": "Reasoning",
     "author": "SSC Reasoning Lab"
-  },
-  {
-    "id": "HjYUIoOgvfQ",
-    "category": "english",
-    "categoryLabel": "English",
-    "author": "SSC English Lab"
-  },
-  {
-    "id": "7pLWYimXSW8",
-    "category": "english",
-    "categoryLabel": "English",
-    "author": "SSC English Lab"
   },
   {
     "id": "CwLG1u7InLU",
@@ -303,12 +801,6 @@ const SSC_SHORTS_POOL = [
     "author": "SSC English Lab"
   },
   {
-    "id": "63j2QzIFrKc",
-    "category": "english",
-    "categoryLabel": "English",
-    "author": "SSC English Lab"
-  },
-  {
     "id": "NxyPyWZXqjQ",
     "category": "english",
     "categoryLabel": "English",
@@ -340,12 +832,6 @@ const SSC_SHORTS_POOL = [
   },
   {
     "id": "izboy5WXSDk",
-    "category": "gk",
-    "categoryLabel": "GK & GS",
-    "author": "SSC Gk Lab"
-  },
-  {
-    "id": "vc78butPXnY",
     "category": "gk",
     "categoryLabel": "GK & GS",
     "author": "SSC Gk Lab"
@@ -405,19 +891,7 @@ const SSC_SHORTS_POOL = [
     "author": "SSC Gk Lab"
   },
   {
-    "id": "_nMXg5Vl5TU",
-    "category": "gk",
-    "categoryLabel": "GK & GS",
-    "author": "SSC Gk Lab"
-  },
-  {
     "id": "5GhUhyfnF5g",
-    "category": "gk",
-    "categoryLabel": "GK & GS",
-    "author": "SSC Gk Lab"
-  },
-  {
-    "id": "BsQnnc6c8R0",
     "category": "gk",
     "categoryLabel": "GK & GS",
     "author": "SSC Gk Lab"
@@ -478,12 +952,6 @@ const SSC_SHORTS_POOL = [
   },
   {
     "id": "4AxEsrsn4zU",
-    "category": "animals",
-    "categoryLabel": "Animals",
-    "author": "Funny Animals"
-  },
-  {
-    "id": "mkN5pblyBoU",
     "category": "animals",
     "categoryLabel": "Animals",
     "author": "Funny Animals"
@@ -555,12 +1023,6 @@ const SSC_SHORTS_POOL = [
     "author": "Funny Animals"
   },
   {
-    "id": "KjtVyjHytVY",
-    "category": "animals",
-    "categoryLabel": "Animals",
-    "author": "Funny Animals"
-  },
-  {
     "id": "sERYQt4JYpc",
     "category": "animals",
     "categoryLabel": "Animals",
@@ -580,6 +1042,126 @@ const SSC_SHORTS_POOL = [
   },
   {
     "id": "E6Fis2vKmBc",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "Funny Animals"
+  },
+  {
+    "id": "r36TaB7Pi6Y",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths Hub"
+  },
+  {
+    "id": "tE9IoQptEVM",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths Hub"
+  },
+  {
+    "id": "xf2wto4bl9M",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths Hub"
+  },
+  {
+    "id": "h3_by1tgTtw",
+    "category": "maths",
+    "categoryLabel": "Maths",
+    "author": "SSC Maths Hub"
+  },
+  {
+    "id": "TimzYtZG5Jc",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning Hub"
+  },
+  {
+    "id": "clLXM66RyXo",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning Hub"
+  },
+  {
+    "id": "KqLhPrkkfa4",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning Hub"
+  },
+  {
+    "id": "QIZn2ieEyZE",
+    "category": "reasoning",
+    "categoryLabel": "Reasoning",
+    "author": "SSC Reasoning Hub"
+  },
+  {
+    "id": "1TtdLqNHzV0",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English Hub"
+  },
+  {
+    "id": "fojrqqiqRsQ",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English Hub"
+  },
+  {
+    "id": "dy8WIMj6aTw",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English Hub"
+  },
+  {
+    "id": "rHlElySKOxo",
+    "category": "english",
+    "categoryLabel": "English",
+    "author": "SSC English Hub"
+  },
+  {
+    "id": "UI4KJnGT7SQ",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC GK & GS Hub"
+  },
+  {
+    "id": "E5HUeXU-y5Q",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC GK & GS Hub"
+  },
+  {
+    "id": "wWlxu3tmZ8Q",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC GK & GS Hub"
+  },
+  {
+    "id": "ntw-U7azHsI",
+    "category": "gk",
+    "categoryLabel": "GK & GS",
+    "author": "SSC GK & GS Hub"
+  },
+  {
+    "id": "gcUDUjr8rBs",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "Funny Animals"
+  },
+  {
+    "id": "WOHI4sRv8eU",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "Funny Animals"
+  },
+  {
+    "id": "3s2bd6-BhK8",
+    "category": "animals",
+    "categoryLabel": "Animals",
+    "author": "Funny Animals"
+  },
+  {
+    "id": "6ZJ59eupvMY",
     "category": "animals",
     "categoryLabel": "Animals",
     "author": "Funny Animals"
@@ -630,28 +1212,54 @@ const ShortsStore = {
     localStorage.setItem('ssc_custom_shorts', JSON.stringify(custom));
   },
 
-  // Get Infinite Shuffled Stream for any Category
   getAllShorts() {
     const custom = this.getCustomShorts();
     return [...custom, ...SSC_SHORTS_POOL];
   },
 
+  // Seen History Tracking (Deduplication Engine)
+  getSeenHistory() {
+    try {
+      const data = localStorage.getItem('ssc_seen_history');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  markAsSeen(id) {
+    let seen = this.getSeenHistory();
+    if (!seen.includes(id)) {
+      seen.push(id);
+      // Keep up to 500 recently viewed shorts in memory
+      if (seen.length > 500) {
+        seen = seen.slice(-500);
+      }
+      localStorage.setItem('ssc_seen_history', JSON.stringify(seen));
+    }
+  },
+
+  resetSeenHistory() {
+    localStorage.removeItem('ssc_seen_history');
+  },
+
+  // Get Infinite Non-Repeating Shuffled Stream for any Category
   getRandomStream(category = 'all') {
-    const custom = this.getCustomShorts();
-    let base = [...custom, ...SSC_SHORTS_POOL];
+    const all = this.getAllShorts();
+    let base = category === 'all' ? all : all.filter(s => s.category === category);
 
-    if (category === 'saved') {
-      const bms = this.getBookmarks();
-      base = base.filter(s => bms.includes(s.id));
-      return base;
+    const seen = this.getSeenHistory();
+    
+    // Filter out videos user has already watched!
+    let unseen = base.filter(s => !seen.includes(s.id));
+
+    // If user has watched all videos in this category, recycle gracefully
+    if (unseen.length === 0) {
+      unseen = [...base];
     }
 
-    if (category !== 'all') {
-      base = base.filter(s => s.category === category);
-    }
-
-    // Fisher-Yates Shuffle for pure randomness
-    const shuffled = [...base];
+    // Fisher-Yates pure randomness shuffle
+    const shuffled = [...unseen];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

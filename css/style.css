@@ -347,10 +347,10 @@ html, body {
 
 .video-wrapper iframe {
   position: absolute;
-  top: -78px; /* Offset to completely hide YouTube channel & title top banner */
+  top: -46px; /* Clean offset hiding YouTube header without cutting video */
   left: 0;
   width: 100%;
-  height: calc(100% + 78px);
+  height: calc(100% + 46px);
   border: none;
   display: block;
 }
@@ -360,13 +360,58 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  right: 65px; /* Leaves action buttons directly clickable */
-  height: calc(100% - 65px); /* Leaves scrubber & YouTube controls accessible */
+  right: 70px; /* Leaves action buttons directly clickable */
+  height: 100%;
   z-index: 15;
   cursor: pointer;
 }
 
-/* Right-Side Action Column - Vertically Centered (Pure Icon Buttons) */
+/* Ultra-Thin Shorts Red Progress Bar (Real YouTube Shorts Style) */
+.shorts-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: #ff0000;
+  z-index: 30;
+  transition: width 0.3s linear;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+/* Custom Play/Pause Pulse Indicator */
+.play-pause-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 20;
+}
+
+.play-pause-pulse.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.play-pause-pulse svg {
+  width: 26px;
+  height: 26px;
+  fill: #ffffff;
+}
 .right-actions {
   position: absolute;
   top: 50%;

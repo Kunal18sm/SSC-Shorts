@@ -4,6 +4,8 @@ let currentCategory = 'all';
 let previousCategory = 'all';
 let currentQueueIndex = 0;
 let shortQueue = [];
+let userSoundEnabled = localStorage.getItem('ssc_sound_enabled') === 'true';
+let hasInteracted = false;
 
 // DOM Elements
 const shortsFeedEl = document.getElementById('shortsFeed');
@@ -162,14 +164,19 @@ function renderActiveShort() {
   const short = shortQueue[currentQueueIndex];
   const isBookmarked = ShortsStore.isBookmarked(short.id);
 
-  // Pure Clean Video Card
+  // Mark as seen so this video is never repeated until all are seen!
+  ShortsStore.markAsSeen(short.id);
+
+  const muteParam = userSoundEnabled ? 0 : 1;
+
+  // Pure Clean Video Card - controls=0 for zero controller clutter!
   shortsFeedEl.innerHTML = `
     <div class="short-card">
-      <!-- 100% Video Player Frame (Header cropped out) -->
+      <!-- 100% Video Player Frame (Header cropped out, controls=0) -->
       <div class="video-wrapper">
         <iframe 
           id="ytPlayer"
-          src="https://www.youtube-nocookie.com/embed/${short.id}?autoplay=1&mute=0&controls=1&rel=0&loop=1&playlist=${short.id}&playsinline=1&modestbranding=1&enablejsapi=1" 
+          src="https://www.youtube-nocookie.com/embed/${short.id}?autoplay=1&mute=${muteParam}&controls=0&rel=0&loop=1&playlist=${short.id}&playsinline=1&modestbranding=1&enablejsapi=1" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
           allowfullscreen>
         </iframe>
@@ -178,11 +185,28 @@ function renderActiveShort() {
       <!-- Gesture & Wheel Scroll Overlay -->
       <div class="video-gesture-layer" id="gestureLayer" title="Click to Play/Pause • Scroll for Next"></div>
 
+      <!-- Real Shorts Ultra-Thin Red Progress Line -->
+      <div class="shorts-progress-bar" id="progressBar"></div>
+
+      <!-- Custom Play/Pause Pulse Indicator -->
+      <div class="play-pause-pulse" id="playPulse">
+        <svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20"/></svg>
+      </div>
+
       <!-- Right Action Column (Vertically Centered - Transparent & Hollow Outline Bookmark) -->
       <div class="right-actions">
         <!-- Bookmark / Save (Hollow Outline: Beech me Khali, Outline White) -->
         <button class="action-btn ${isBookmarked ? 'bookmarked' : ''}" id="btnBookmark" title="${isBookmarked ? 'Remove Bookmark' : 'Save to Bookmarks'}">
           <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </button>
+
+        <!-- Sound Mute/Unmute Toggle Button -->
+        <button class="action-btn" id="btnSound" title="${userSoundEnabled ? 'Mute Audio' : 'Unmute Audio'}">
+          ${userSoundEnabled ? `
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          ` : `
+            <svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+          `}
         </button>
 
         <!-- Random Next Short -->
@@ -205,14 +229,59 @@ function renderActiveShort() {
     renderActiveShort();
   });
 
+  // Sound toggle button click
+  const btnSound = document.getElementById('btnSound');
+  if (btnSound) {
+    btnSound.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userSoundEnabled = !userSoundEnabled;
+      localStorage.setItem('ssc_sound_enabled', userSoundEnabled);
+      const player = document.getElementById('ytPlayer');
+      if (player && player.contentWindow) {
+        player.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: userSoundEnabled ? 'unMute' : 'mute',
+          args: ''
+        }), '*');
+        if (userSoundEnabled) {
+          player.contentWindow.postMessage(JSON.stringify({
+            event: 'command',
+            func: 'setVolume',
+            args: [100]
+          }), '*');
+        }
+      }
+      btnSound.title = userSoundEnabled ? 'Mute Audio' : 'Unmute Audio';
+      btnSound.innerHTML = userSoundEnabled ? `
+        <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      ` : `
+        <svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+      `;
+      showToast(userSoundEnabled ? 'Sound ON 🔊' : 'Sound Muted 🔇');
+    });
+  }
+
   document.getElementById('btnNextRandom').addEventListener('click', () => {
     nextRandomShort();
   });
 
   // Attach Gesture Layer Events (Click play/pause & double-click save)
   const gestureLayer = document.getElementById('gestureLayer');
+  const progressBar = document.getElementById('progressBar');
+  const playPulse = document.getElementById('playPulse');
   let isVideoPlaying = true;
   let clickTimeout = null;
+
+  // Auto-progress simulation for clean red line
+  clearInterval(window._progressTimer);
+  let progressVal = 0;
+  window._progressTimer = setInterval(() => {
+    if (isVideoPlaying && progressBar) {
+      progressVal += 1.5;
+      if (progressVal > 100) progressVal = 0; // loops cleanly
+      progressBar.style.width = progressVal + '%';
+    }
+  }, 400);
 
   if (gestureLayer) {
     gestureLayer.addEventListener('click', () => {
@@ -226,6 +295,24 @@ function renderActiveShort() {
             func: isVideoPlaying ? 'playVideo' : 'pauseVideo',
             args: ''
           }), '*');
+
+          // If playing and sound enabled, reinforce unMute
+          if (isVideoPlaying && userSoundEnabled) {
+            player.contentWindow.postMessage(JSON.stringify({
+              event: 'command',
+              func: 'unMute',
+              args: ''
+            }), '*');
+          }
+
+          // Subtle pulse icon in center
+          if (playPulse) {
+            playPulse.innerHTML = isVideoPlaying 
+              ? '<svg viewBox="0 0 24 24"><polygon points="6,4 20,12 6,20" fill="#fff"/></svg>'
+              : '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" fill="#fff"/><rect x="14" y="4" width="4" height="16" fill="#fff"/></svg>';
+            playPulse.classList.add('show');
+            setTimeout(() => playPulse.classList.remove('show'), 350);
+          }
         }
       }, 200);
     });
@@ -312,6 +399,7 @@ function setupEventListeners() {
 
   // Keyboard navigation (Arrow keys & Shortcuts)
   window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       nextShort();
@@ -320,6 +408,13 @@ function setupEventListeners() {
       prevShort();
     } else if (e.key.toLowerCase() === 'r') {
       nextRandomShort();
+    } else if (e.key.toLowerCase() === 'm') {
+      const btnSound = document.getElementById('btnSound');
+      if (btnSound) btnSound.click();
+    } else if (e.key.toLowerCase() === 'k' || e.code === 'Space') {
+      e.preventDefault();
+      const gesture = document.getElementById('gestureLayer');
+      if (gesture) gesture.click();
     } else if (e.key.toLowerCase() === 'b') {
       const short = shortQueue[currentQueueIndex];
       if (short) {
