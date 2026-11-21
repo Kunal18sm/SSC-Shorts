@@ -6,6 +6,7 @@ let currentQueueIndex = 0;
 let shortQueue = [];
 let userSoundEnabled = localStorage.getItem('ssc_sound_enabled') === 'true';
 let hasInteracted = false;
+let isSavedPlaying = false; // true ONLY when a saved video is actively playing
 
 // DOM Elements
 const shortsFeedEl = document.getElementById('shortsFeed');
@@ -63,6 +64,7 @@ function replenishQueue(category) {
 
 // Switch category or reset
 function loadCategory(category) {
+  isSavedPlaying = false;
   if (category !== 'saved') {
     previousCategory = category;
   }
@@ -95,6 +97,7 @@ function loadCategory(category) {
 
 // Render Saved Shorts Thumbnail Grid View (YouTube Style)
 function renderSavedGridView() {
+  isSavedPlaying = false;
   const bookmarks = ShortsStore.getBookmarks();
   const allShorts = ShortsStore.getAllShorts();
   const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
@@ -148,6 +151,7 @@ function playSingleShort(videoId) {
   const allShorts = ShortsStore.getAllShorts();
   const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
   if (savedItems.length > 0) {
+    isSavedPlaying = true; // Actively playing a saved short!
     shortQueue = savedItems;
     const targetIdx = savedItems.findIndex(s => s.id === videoId);
     currentQueueIndex = targetIdx !== -1 ? targetIdx : 0;
@@ -270,6 +274,7 @@ function renderActiveShort() {
   if (btnBackToGrid) {
     btnBackToGrid.addEventListener('click', (e) => {
       e.stopPropagation();
+      isSavedPlaying = false;
       renderSavedGridView();
     });
   }
@@ -283,6 +288,7 @@ function renderActiveShort() {
       const allShorts = ShortsStore.getAllShorts();
       const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
       if (savedItems.length === 0) {
+        isSavedPlaying = false;
         renderSavedGridView();
         return;
       }
@@ -383,6 +389,7 @@ function renderActiveShort() {
         const allShorts = ShortsStore.getAllShorts();
         const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
         if (savedItems.length === 0) {
+          isSavedPlaying = false;
           renderSavedGridView();
           return;
         }
@@ -655,6 +662,8 @@ function renderQuizCard(q) {
 // Next short (Infinite or Saved Playlist)
 function nextShort() {
   if (currentCategory === 'saved') {
+    // If user is in saved grid view, DO NOT open video!
+    if (!isSavedPlaying) return;
     if (shortQueue.length <= 1) {
       showToast('No more saved shorts');
       return;
@@ -670,6 +679,8 @@ function nextShort() {
 // Prev short
 function prevShort() {
   if (currentCategory === 'saved') {
+    // If user is in saved grid view, DO NOT open video!
+    if (!isSavedPlaying) return;
     if (shortQueue.length <= 1) {
       showToast('No more saved shorts');
       return;
@@ -689,6 +700,7 @@ function prevShort() {
 // Jump to completely new random short
 function nextRandomShort() {
   if (currentCategory === 'saved') {
+    if (!isSavedPlaying) return;
     if (shortQueue.length > 1) {
       let randIdx;
       do {
@@ -737,7 +749,8 @@ function setupEventListeners() {
     navSavedBtn.addEventListener('click', () => {
       if (currentCategory === 'saved') {
         // If currently viewing a video inside saved mode, return to grid view
-        if (!document.querySelector('.saved-grid-view') && !document.querySelector('.empty-state')) {
+        if (isSavedPlaying) {
+          isSavedPlaying = false;
           renderSavedGridView();
         } else {
           loadCategory(previousCategory || 'all');
@@ -755,6 +768,9 @@ function setupEventListeners() {
   // Keyboard navigation (Arrow keys & Shortcuts)
   window.addEventListener('keydown', (e) => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    // When in Saved Grid view (thumbnails), allow default keyboard scrolling of the grid list!
+    if (currentCategory === 'saved' && !isSavedPlaying) return;
+
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       nextShort();
@@ -780,6 +796,7 @@ function setupEventListeners() {
           const allShorts = ShortsStore.getAllShorts();
           const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
           if (savedItems.length === 0) {
+            isSavedPlaying = false;
             renderSavedGridView();
             return;
           }
@@ -804,6 +821,10 @@ function setupEventListeners() {
   }, { passive: true });
 
   viewport.addEventListener('touchend', (e) => {
+    // When in Saved Grid view (thumbnails), allow normal finger scrolling of the list!
+    if (currentCategory === 'saved' && !isSavedPlaying) return;
+    if (document.querySelector('.saved-grid-view') || document.querySelector('.empty-state')) return;
+
     const endY = e.changedTouches[0].clientY;
     const diff = startY - endY;
     if (Math.abs(diff) > 40) {
@@ -818,7 +839,14 @@ function setupEventListeners() {
   // Mouse wheel scroll (Attached to window for 100% reliable scrolling)
   let wheelLock = false;
   window.addEventListener('wheel', (e) => {
-    // If viewing the saved grid view, allow normal scrolling of thumbnail grid!
+    // When in Saved Grid view (thumbnails), do NOT navigate shorts! Allow natural wheel scrolling of the thumbnail grid!
+    if (currentCategory === 'saved' && !isSavedPlaying) {
+      const grid = document.querySelector('.saved-grid-view');
+      if (grid && !grid.contains(e.target)) {
+        grid.scrollTop += e.deltaY;
+      }
+      return;
+    }
     if (document.querySelector('.saved-grid-view') || document.querySelector('.empty-state')) return;
     // On quiz card, allow natural reading/scrolling of explanation and options
     if (document.querySelector('.quiz-card-wrapper')) return;
