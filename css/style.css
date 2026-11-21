@@ -520,6 +520,35 @@ html, body {
   }
 }
 
+/* Saved back button when playing saved short */
+.saved-back-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 15;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.saved-back-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateX(-3px);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 .saved-thumb-card {
   position: relative;
   aspect-ratio: 9 / 16;

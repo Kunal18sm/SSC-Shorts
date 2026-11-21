@@ -144,11 +144,13 @@ function renderSavedGridView() {
 
 // Play selected saved short from thumbnail click
 function playSingleShort(videoId) {
+  const bookmarks = ShortsStore.getBookmarks();
   const allShorts = ShortsStore.getAllShorts();
-  const target = allShorts.find(s => s.id === videoId);
-  if (target) {
-    shortQueue = [target, ...allShorts.filter(s => s.id !== videoId)];
-    currentQueueIndex = 0;
+  const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
+  if (savedItems.length > 0) {
+    shortQueue = savedItems;
+    const targetIdx = savedItems.findIndex(s => s.id === videoId);
+    currentQueueIndex = targetIdx !== -1 ? targetIdx : 0;
     renderActiveShort();
   }
 }
@@ -167,12 +169,19 @@ function renderActiveShort() {
   if (nextBtn) nextBtn.style.display = 'flex';
 
   if (shortQueue.length === 0) {
-    loadCategory('all');
+    if (currentCategory === 'saved') {
+      renderSavedGridView();
+    } else {
+      loadCategory('all');
+    }
     return;
   }
 
   // Ensure index is within bounds
   if (currentQueueIndex < 0) currentQueueIndex = 0;
+  if (currentCategory === 'saved' && currentQueueIndex >= shortQueue.length) {
+    currentQueueIndex = 0;
+  }
   
   // Infinite scroll auto-replenish
   if (currentCategory !== 'saved' && currentQueueIndex >= shortQueue.length - 4) {
@@ -200,6 +209,15 @@ function renderActiveShort() {
   // Pure Clean Video Card - controls=0 for zero controller clutter!
   shortsFeedEl.innerHTML = `
     <div class="short-card">
+      ${currentCategory === 'saved' ? `
+        <button class="saved-back-btn" id="btnBackToGrid" title="Back to Saved Library">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>Saved Grid</span>
+        </button>
+      ` : ''}
+
       <!-- 100% Video Player Frame (Header cropped out, controls=0) -->
       <div class="video-wrapper">
         <iframe 
@@ -247,11 +265,35 @@ function renderActiveShort() {
     </div>
   `;
 
+  // Back to Saved Grid button
+  const btnBackToGrid = document.getElementById('btnBackToGrid');
+  if (btnBackToGrid) {
+    btnBackToGrid.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderSavedGridView();
+    });
+  }
+
   // Action events
   document.getElementById('btnBookmark').addEventListener('click', () => {
     const isSaved = ShortsStore.toggleBookmark(short.id);
     showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-    renderActiveShort();
+    if (currentCategory === 'saved') {
+      const bookmarks = ShortsStore.getBookmarks();
+      const allShorts = ShortsStore.getAllShorts();
+      const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
+      if (savedItems.length === 0) {
+        renderSavedGridView();
+        return;
+      }
+      shortQueue = savedItems;
+      if (currentQueueIndex >= shortQueue.length) {
+        currentQueueIndex = 0;
+      }
+      renderActiveShort();
+    } else {
+      renderActiveShort();
+    }
   });
 
   // Sound toggle button click
@@ -336,7 +378,22 @@ function renderActiveShort() {
       clearTimeout(clickTimeout);
       const isSaved = ShortsStore.toggleBookmark(short.id);
       showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-      renderActiveShort();
+      if (currentCategory === 'saved') {
+        const bookmarks = ShortsStore.getBookmarks();
+        const allShorts = ShortsStore.getAllShorts();
+        const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
+        if (savedItems.length === 0) {
+          renderSavedGridView();
+          return;
+        }
+        shortQueue = savedItems;
+        if (currentQueueIndex >= shortQueue.length) {
+          currentQueueIndex = 0;
+        }
+        renderActiveShort();
+      } else {
+        renderActiveShort();
+      }
     });
   }
 }
@@ -595,16 +652,32 @@ function renderQuizCard(q) {
   renderQuizBatch([q]);
 }
 
-// Next short (Infinite)
+// Next short (Infinite or Saved Playlist)
 function nextShort() {
-  if (currentCategory === 'saved') return;
+  if (currentCategory === 'saved') {
+    if (shortQueue.length <= 1) {
+      showToast('No more saved shorts');
+      return;
+    }
+    currentQueueIndex = (currentQueueIndex + 1) % shortQueue.length;
+    renderActiveShort();
+    return;
+  }
   currentQueueIndex++;
   renderActiveShort();
 }
 
 // Prev short
 function prevShort() {
-  if (currentCategory === 'saved') return;
+  if (currentCategory === 'saved') {
+    if (shortQueue.length <= 1) {
+      showToast('No more saved shorts');
+      return;
+    }
+    currentQueueIndex = (currentQueueIndex - 1 + shortQueue.length) % shortQueue.length;
+    renderActiveShort();
+    return;
+  }
   if (currentQueueIndex > 0) {
     currentQueueIndex--;
     renderActiveShort();
@@ -616,7 +689,15 @@ function prevShort() {
 // Jump to completely new random short
 function nextRandomShort() {
   if (currentCategory === 'saved') {
-    loadCategory('all');
+    if (shortQueue.length > 1) {
+      let randIdx;
+      do {
+        randIdx = Math.floor(Math.random() * shortQueue.length);
+      } while (randIdx === currentQueueIndex && shortQueue.length > 1);
+      currentQueueIndex = randIdx;
+      renderActiveShort();
+      showToast('Random Saved Short');
+    }
     return;
   }
   const jump = Math.floor(Math.random() * 5) + 1;
@@ -655,7 +736,12 @@ function setupEventListeners() {
   if (navSavedBtn) {
     navSavedBtn.addEventListener('click', () => {
       if (currentCategory === 'saved') {
-        loadCategory(previousCategory || 'all');
+        // If currently viewing a video inside saved mode, return to grid view
+        if (!document.querySelector('.saved-grid-view') && !document.querySelector('.empty-state')) {
+          renderSavedGridView();
+        } else {
+          loadCategory(previousCategory || 'all');
+        }
       } else {
         loadCategory('saved');
       }
@@ -689,7 +775,22 @@ function setupEventListeners() {
       if (short) {
         const state = ShortsStore.toggleBookmark(short.id);
         showToast(state ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-        renderActiveShort();
+        if (currentCategory === 'saved') {
+          const bookmarks = ShortsStore.getBookmarks();
+          const allShorts = ShortsStore.getAllShorts();
+          const savedItems = allShorts.filter(s => bookmarks.includes(s.id));
+          if (savedItems.length === 0) {
+            renderSavedGridView();
+            return;
+          }
+          shortQueue = savedItems;
+          if (currentQueueIndex >= shortQueue.length) {
+            currentQueueIndex = 0;
+          }
+          renderActiveShort();
+        } else {
+          renderActiveShort();
+        }
       }
     }
   });
@@ -717,7 +818,8 @@ function setupEventListeners() {
   // Mouse wheel scroll (Attached to window for 100% reliable scrolling)
   let wheelLock = false;
   window.addEventListener('wheel', (e) => {
-    if (currentCategory === 'saved') return; // let user scroll thumbnail grid normally
+    // If viewing the saved grid view, allow normal scrolling of thumbnail grid!
+    if (document.querySelector('.saved-grid-view') || document.querySelector('.empty-state')) return;
     // On quiz card, allow natural reading/scrolling of explanation and options
     if (document.querySelector('.quiz-card-wrapper')) return;
     if (wheelLock) return;
