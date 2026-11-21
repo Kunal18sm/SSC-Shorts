@@ -1,9 +1,10 @@
-// SSC Daily Quiz Engine (Powered by QuizeApp 8,700+ Question Bank)
-// Excludes Math completely per user requirement; focuses on English & General Knowledge
+// SSC Daily Quiz Engine (Powered by QuizeApp & MongoDB Verified Sets)
+// Excludes Math completely; 3 Questions per session: 2 MongoDB Raja/Aditya Sir GK + 1 Classic SSC English/GK
 
 const QuizEngine = {
   DAILY_QUOTA_COUNT: 30,
-  SHORTS_BETWEEN_QUIZ: 7, // User requirement: "har 7 shorts ke baad aana chaiye"
+  SHORTS_BETWEEN_QUIZ: 5, // User requirement: "ab hum har 5 video ke baad quize card show karenge"
+  BATCH_SIZE: 3,          // User requirement: "3 quize ka jinme se 2 questions iss mongodb wale quize set se honge and 1 question humare ourane quize set se hoga"
   isHindiMode: false,
   translationCache: {},
 
@@ -17,7 +18,6 @@ const QuizEngine = {
       const savedQuota = localStorage.getItem('ssc_daily_quiz_quota_v3');
       if (savedQuota && storedDate === todayStr) {
         quota = JSON.parse(savedQuota);
-        // Ensure no math questions exist in saved quota
         const hasMath = quota.some(q => {
           const cat = (q.category || '').toLowerCase();
           const sub = (q.subject || '').toLowerCase();
@@ -49,8 +49,6 @@ const QuizEngine = {
     const data = window.QUIZEE_ALL_QUESTIONS;
     const selected = [];
 
-    // STRICT NON-MATH DISTRIBUTION:
-    // English: 10, Static GK: 6, Polity: 4, History: 4, Geography: 3, Biology: 2, Economics: 1 = 30 total
     const distribution = [
       { key: 'english', count: 10 },
       { key: 'static_gk', count: 6 },
@@ -64,7 +62,6 @@ const QuizEngine = {
     distribution.forEach(dist => {
       const list = data[dist.key] || [];
       if (list.length > 0) {
-        // Filter out any math questions
         const nonMathList = list.filter(q => {
           const cat = (q.category || '').toLowerCase();
           const sub = (q.subject || '').toLowerCase();
@@ -75,8 +72,56 @@ const QuizEngine = {
       }
     });
 
-    // Shuffle the final 30 questions
     return selected.sort(() => 0.5 - Math.random()).slice(0, this.DAILY_QUOTA_COUNT);
+  },
+
+  // Generates 3-Question Batch: 2 from MongoDB Quizzes + 1 from Classic SSC Bank
+  getQuizBatch(batchIndex = 0) {
+    const batch = [];
+
+    // 1. Pick 2 MongoDB questions (From Raja Sir & Aditya Sir SSC GK GS Sets)
+    const mongoPool = window.MONGODB_QUIZ_QUESTIONS || [];
+    if (mongoPool.length > 0) {
+      let seenMongoIds = [];
+      try {
+        seenMongoIds = JSON.parse(localStorage.getItem('ssc_mongo_seen_ids') || '[]');
+      } catch (e) {
+        seenMongoIds = [];
+      }
+
+      let availableMongo = mongoPool.filter(q => !seenMongoIds.includes(q.id));
+      if (availableMongo.length < 2) {
+        seenMongoIds = [];
+        availableMongo = [...mongoPool];
+        localStorage.setItem('ssc_mongo_seen_ids', JSON.stringify([]));
+      }
+
+      // Shuffle & pick 2
+      const shuffled = [...availableMongo].sort(() => 0.5 - Math.random());
+      const q1 = shuffled[0];
+      const q2 = shuffled[1] || shuffled[0];
+
+      seenMongoIds.push(q1.id, q2.id);
+      localStorage.setItem('ssc_mongo_seen_ids', JSON.stringify(seenMongoIds.slice(-400)));
+
+      batch.push({ ...q1, source: 'mongodb' });
+      batch.push({ ...q2, source: 'mongodb' });
+    }
+
+    // 2. Pick 1 Classic question (English or GK from QUIZEE_ALL_QUESTIONS)
+    const quota = this.getTodayQuota();
+    if (quota && quota.length > 0) {
+      const classicQ = quota[batchIndex % quota.length];
+      batch.push({ ...classicQ, source: 'classic' });
+    }
+
+    // Fallback if needed
+    while (batch.length < this.BATCH_SIZE && mongoPool.length > 0) {
+      const rnd = mongoPool[Math.floor(Math.random() * mongoPool.length)];
+      batch.push({ ...rnd, source: 'mongodb' });
+    }
+
+    return batch;
   },
 
   // Get answer progress for today
@@ -102,35 +147,6 @@ const QuizEngine = {
     const progress = this.getTodayProgress();
     progress[questionId] = { selectedIdx, isCorrect, answeredAt: Date.now() };
     localStorage.setItem('ssc_daily_quiz_progress_v3', JSON.stringify(progress));
-  },
-
-  // Pick question matching active category, or next in daily 30 quota (NO MATH)
-  getNextQuizQuestion(category = 'all', quizNumber = 0) {
-    const quota = this.getTodayQuota();
-    if (!quota || quota.length === 0) return null;
-
-    // If specific category selected, prefer matching subject
-    if (category !== 'all' && category !== 'animals') {
-      const catMap = {
-        'english': ['english'],
-        'gk': ['polity', 'history', 'static_gk', 'geography', 'biology', 'economics']
-      };
-      const allowedKeys = catMap[category] || ['english', 'static_gk', 'polity', 'history'];
-      const matchingFromQuota = quota.filter(q => {
-        if (!q.category) return false;
-        const catLower = q.category.toLowerCase();
-        const subLower = (q.subject || '').toLowerCase();
-        // Never allow math
-        if (catLower.includes('math') || subLower === 'math') return false;
-        return allowedKeys.some(k => catLower.includes(k) || subLower.includes(k));
-      });
-      if (matchingFromQuota.length > 0) {
-        return matchingFromQuota[quizNumber % matchingFromQuota.length];
-      }
-    }
-
-    // Default: cycle through today's 30 questions
-    return quota[quizNumber % quota.length];
   },
 
   // Toggle Hindi Mode

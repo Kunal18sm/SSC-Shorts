@@ -368,16 +368,7 @@ html, body {
 
 /* Ultra-Thin Shorts Red Progress Bar (Real YouTube Shorts Style) */
 .shorts-progress-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0%;
-  height: 3px;
-  background: #ff0000;
-  z-index: 30;
-  transition: width 0.3s linear;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
-  pointer-events: none;
+  display: none !important;
 }
 
 /* Custom Play/Pause Pulse Indicator */

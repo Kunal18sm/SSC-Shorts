@@ -38,7 +38,7 @@ function initApp() {
 let totalShortsViewed = 0;
 let quizCounter = 0;
 
-// Replenish queue infinitely with random shorts + 1 Quiz every 7 shorts!
+// Replenish queue infinitely with random shorts + 1 Quiz Batch (3 Qs) every 5 shorts!
 function replenishQueue(category) {
   const freshShuffledBatch = ShortsStore.getRandomStream(category);
   if (freshShuffledBatch.length > 0) {
@@ -46,14 +46,14 @@ function replenishQueue(category) {
       shortQueue.push(shortItem);
       totalShortsViewed++;
 
-      // User requirement: "ye quize har 7 shorts ke baad aana chaiye"
+      // User requirement: "ab hum har 5 video ke baad quize card show karenge 3 quize ka"
       if (typeof QuizEngine !== 'undefined' && category !== 'saved' && totalShortsViewed % QuizEngine.SHORTS_BETWEEN_QUIZ === 0) {
-        const quizQ = QuizEngine.getNextQuizQuestion(category, quizCounter++);
-        if (quizQ) {
+        const batch = QuizEngine.getQuizBatch(quizCounter++);
+        if (batch && batch.length > 0) {
           shortQueue.push({
-            type: 'quiz',
-            id: `quiz_${quizQ.id}_${Date.now()}`,
-            quizData: quizQ
+            type: 'quiz_batch',
+            id: `batch_${Date.now()}_${quizCounter}`,
+            quizBatch: batch
           });
         }
       }
@@ -182,9 +182,10 @@ function renderActiveShort() {
   const currentItem = shortQueue[currentQueueIndex];
   if (!currentItem) return;
 
-  // Check if current item is a Quiz Card!
-  if (currentItem.type === 'quiz') {
-    renderQuizCard(currentItem.quizData);
+  // Check if current item is a Quiz Batch or Quiz Card!
+  if (currentItem.type === 'quiz_batch' || currentItem.type === 'quiz') {
+    const batch = currentItem.quizBatch || [currentItem.quizData];
+    renderQuizBatch(batch);
     return;
   }
 
@@ -211,9 +212,6 @@ function renderActiveShort() {
 
       <!-- Gesture & Wheel Scroll Overlay -->
       <div class="video-gesture-layer" id="gestureLayer" title="Click to Play/Pause • Scroll for Next"></div>
-
-      <!-- Real Shorts Ultra-Thin Red Progress Line -->
-      <div class="shorts-progress-bar" id="progressBar"></div>
 
       <!-- Custom Play/Pause Pulse Indicator -->
       <div class="play-pause-pulse" id="playPulse">
@@ -294,21 +292,11 @@ function renderActiveShort() {
 
   // Attach Gesture Layer Events (Click play/pause & double-click save)
   const gestureLayer = document.getElementById('gestureLayer');
-  const progressBar = document.getElementById('progressBar');
   const playPulse = document.getElementById('playPulse');
   let isVideoPlaying = true;
   let clickTimeout = null;
 
-  // Auto-progress simulation for clean red line
   clearInterval(window._progressTimer);
-  let progressVal = 0;
-  window._progressTimer = setInterval(() => {
-    if (isVideoPlaying && progressBar) {
-      progressVal += 1.5;
-      if (progressVal > 100) progressVal = 0; // loops cleanly
-      progressBar.style.width = progressVal + '%';
-    }
-  }, 400);
 
   if (gestureLayer) {
     gestureLayer.addEventListener('click', () => {
@@ -353,221 +341,258 @@ function renderActiveShort() {
   }
 }
 
-// Render QuizeApp Native SSC Quiz Card (Matching Image & Exact QuizeApp Theme)
-function renderQuizCard(q) {
+// Render QuizeApp Native SSC Quiz Batch (3 Qs per batch: 2 MongoDB + 1 Classic)
+function renderQuizBatch(batch) {
   // Clear any existing video progress timer
   clearInterval(window._progressTimer);
 
-  const quota = QuizEngine.getTodayQuota();
-  const qIndexInQuota = quota.findIndex(item => item.id === q.id);
-  const displayQNum = qIndexInQuota >= 0 ? qIndexInQuota + 1 : ((currentQueueIndex % 30) + 1);
-  const isHindi = QuizEngine.isHindiMode;
-  const score = QuizEngine.getScore();
-  const progressPct = Math.round((displayQNum / 30) * 100);
-
-  // Prepare question text and options based on current language mode
-  let displayQ = q.question;
-  let displayOpts = [...q.options];
-
-  if (isHindi) {
-    if (q.question_hi && q.options_hi && q.options_hi.length === q.options.length) {
-      displayQ = q.question_hi;
-      displayOpts = q.options_hi;
-    } else if (QuizEngine.translationCache[q.id]) {
-      displayQ = QuizEngine.translationCache[q.id].question;
-      displayOpts = QuizEngine.translationCache[q.id].options;
-    } else {
-      const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
-      if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
-        displayQ = embedded.question;
-        displayOpts = embedded.options;
-      }
-    }
-  } else {
-    const eng = QuizEngine.extractEmbeddedEnglishQuestion(q);
-    if (eng) {
-      displayQ = eng.question;
-      displayOpts = eng.options;
-    }
+  if (!batch || batch.length === 0) {
+    nextShort();
+    return;
   }
 
-  const badges = ['A', 'B', 'C', 'D'];
-  const fullCategory = q.category || (q.subject ? q.subject.toUpperCase() : 'SSC EXAM');
-  const catParts = fullCategory.split(':');
-  const drillSubject = catParts.length > 1 ? catParts[1].trim() : fullCategory;
-  const drillTitle = `${drillSubject} • Rapid Drill`;
-  const categoryTag = fullCategory.toUpperCase();
+  // Ensure batch is array
+  const questionsList = Array.isArray(batch) ? batch : [batch];
+  const totalQ = questionsList.length;
+  let currentBatchIndex = 0;
+  let batchScore = 0;
 
-  shortsFeedEl.innerHTML = `
-    <div class="short-card">
-      <div class="quiz-card-wrapper" id="quizCardWrapper">
-        <div class="quiz-modal-window">
-          <!-- Header (Matching Image Exactly) -->
-          <div class="web-test-header">
-            <button class="btn-test-exit" id="btnQuizExit">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              <span>Exit Test</span>
-            </button>
-            <div class="test-header-center">
-              <div class="test-header-title" id="webTestHeaderTitle">${drillTitle}</div>
-              <div class="test-header-progress" id="webTestHeaderProgress">Q ${displayQNum} of 30</div>
-            </div>
-            <div class="test-header-right">
-              <span class="test-score-pill" id="webTestScorePill">Score: ${score}</span>
-              <button class="btn-test-translate ${isHindi ? 'active-hindi' : ''}" id="btnQuizTranslate">
-                ${isHindi ? 'A / अ English' : 'अ / A Hindi'}
+  function renderCurrentBatchQuestion() {
+    const q = questionsList[currentBatchIndex];
+    if (!q) {
+      nextShort();
+      return;
+    }
+
+    const qNum = currentBatchIndex + 1;
+    const isHindi = QuizEngine.isHindiMode;
+    const progressPct = Math.round((qNum / totalQ) * 100);
+
+    // Prepare question text and options based on current language mode
+    let displayQ = q.question;
+    let displayOpts = [...q.options];
+
+    if (isHindi) {
+      if (q.question_hi && q.options_hi && q.options_hi.length === q.options.length) {
+        displayQ = q.question_hi;
+        displayOpts = q.options_hi;
+      } else if (QuizEngine.translationCache[q.id]) {
+        displayQ = QuizEngine.translationCache[q.id].question;
+        displayOpts = QuizEngine.translationCache[q.id].options;
+      } else {
+        const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
+        if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
+          displayQ = embedded.question;
+          displayOpts = embedded.options;
+        }
+      }
+    } else {
+      const eng = QuizEngine.extractEmbeddedEnglishQuestion(q);
+      if (eng) {
+        displayQ = eng.question;
+        displayOpts = eng.options;
+      }
+    }
+
+    const badges = ['A', 'B', 'C', 'D'];
+    const fullCategory = q.category || (q.subject ? q.subject.toUpperCase() : 'SSC EXAM');
+    const catParts = fullCategory.split(':');
+    const drillSubject = catParts.length > 1 ? catParts[1].trim() : fullCategory;
+    const drillTitle = `${drillSubject} • Rapid Drill`;
+    const categoryTag = fullCategory.toUpperCase();
+
+    const isLastQuestion = (currentBatchIndex === totalQ - 1);
+    const nextBtnText = isLastQuestion ? 'Finish & Watch Shorts ➔' : `Next Question (${qNum + 1}/${totalQ}) ➔`;
+
+    shortsFeedEl.innerHTML = `
+      <div class="short-card">
+        <div class="quiz-card-wrapper" id="quizCardWrapper">
+          <div class="quiz-modal-window">
+            <!-- Header (Matching Image Exactly) -->
+            <div class="web-test-header">
+              <button class="btn-test-exit" id="btnQuizExit" title="Exit to Shorts">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <span>Exit Test</span>
               </button>
-            </div>
-          </div>
-
-          <!-- Horizontal Progress Bar with Orange Fill -->
-          <div class="web-test-progress-bar">
-            <div class="web-test-progress-fill" style="width: ${progressPct}%;"></div>
-          </div>
-
-          <!-- Active Test Body -->
-          <div class="web-test-body" id="webTestBody">
-            <div class="web-question-card">
-              <span class="question-category-tag">${categoryTag}</span>
-              <div class="question-text-content" id="quizQuestionText">${displayQ}</div>
-              ${q.diagram ? `<div class="web-question-diagram">${q.diagram}</div>` : ''}
-            </div>
-
-            <!-- Options Grid -->
-            <div class="web-options-grid" id="quizOptionsGrid">
-              ${displayOpts.map((opt, i) => `
-                <button class="web-option-btn" data-index="${i}">
-                  <span class="web-option-badge">${badges[i]}</span>
-                  <span class="web-option-text">${opt}</span>
-                  <span class="web-option-feedback-icon" id="fb_icon_${i}"></span>
+              <div class="test-header-center">
+                <div class="test-header-title" id="webTestHeaderTitle">${drillTitle}</div>
+                <div class="test-header-progress" id="webTestHeaderProgress">Question ${qNum} of ${totalQ}</div>
+              </div>
+              <div class="test-header-right">
+                <span class="test-score-pill" id="webTestScorePill">Score: ${batchScore}/${totalQ}</span>
+                <button class="btn-test-translate ${isHindi ? 'active-hindi' : ''}" id="btnQuizTranslate">
+                  ${isHindi ? 'A / अ English' : 'अ / A Hindi'}
                 </button>
-              `).join('')}
-            </div>
-
-            <!-- Solution & Explanation Box (Slides open on answer) -->
-            <div class="web-explanation-box" id="quizExplanationBox">
-              <div class="active-explanation-card">
-                <div class="active-exp-header">
-                  <span class="active-exp-title">💡 Solution & Short Trick</span>
-                  <span class="active-exp-pill">${catParts[0]}</span>
-                </div>
-                <div class="active-exp-content" id="quizExplanationContent">${q.explanation || 'Option ' + badges[q.correctIndex] + ' is the correct answer.'}</div>
               </div>
             </div>
-          </div>
 
-          <!-- Active Test Footer Action Bar -->
-          <div class="web-test-footer" id="webTestFooter">
-            <button class="btn-test-skip" id="btnQuizSkip">Skip Question</button>
-            <button class="btn-test-next" id="btnQuizNext" disabled>Next ➔</button>
+            <!-- Horizontal Progress Bar with Orange Fill -->
+            <div class="web-test-progress-bar">
+              <div class="web-test-progress-fill" style="width: ${progressPct}%;"></div>
+            </div>
+
+            <!-- Active Test Body -->
+            <div class="web-test-body" id="webTestBody">
+              <div class="web-question-card">
+                <span class="question-category-tag">${categoryTag}</span>
+                <div class="question-text-content" id="quizQuestionText">${displayQ}</div>
+                ${q.diagram ? `<div class="web-question-diagram">${q.diagram}</div>` : ''}
+              </div>
+
+              <!-- Options Grid -->
+              <div class="web-options-grid" id="quizOptionsGrid">
+                ${displayOpts.map((opt, i) => `
+                  <button class="web-option-btn" data-index="${i}">
+                    <span class="web-option-badge">${badges[i]}</span>
+                    <span class="web-option-text">${opt}</span>
+                    <span class="web-option-feedback-icon" id="fb_icon_${i}"></span>
+                  </button>
+                `).join('')}
+              </div>
+
+              <!-- Solution & Explanation Box (Slides open on answer) -->
+              <div class="web-explanation-box" id="quizExplanationBox">
+                <div class="active-explanation-card">
+                  <div class="active-exp-header">
+                    <span class="active-exp-title">💡 Solution & Short Trick</span>
+                    <span class="active-exp-pill">${catParts[0]}</span>
+                  </div>
+                  <div class="active-exp-content" id="quizExplanationContent">${q.explanation || 'Option ' + badges[q.correctIndex] + ' is the correct answer.'}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Test Footer Action Bar -->
+            <div class="web-test-footer" id="webTestFooter">
+              <button class="btn-test-skip" id="btnQuizSkip">${isLastQuestion ? 'Skip & Finish' : 'Skip Question'}</button>
+              <button class="btn-test-next" id="btnQuizNext" disabled>${nextBtnText}</button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  // Attach events
-  let isAnswered = false;
-  const optionButtons = document.querySelectorAll('.web-option-btn');
-  const explanationBox = document.getElementById('quizExplanationBox');
-  const btnNext = document.getElementById('btnQuizNext');
-  const btnSkip = document.getElementById('btnQuizSkip');
-  const btnExit = document.getElementById('btnQuizExit');
-  const btnTranslate = document.getElementById('btnQuizTranslate');
+    // Attach events
+    let isAnswered = false;
+    const optionButtons = document.querySelectorAll('.web-option-btn');
+    const explanationBox = document.getElementById('quizExplanationBox');
+    const btnNext = document.getElementById('btnQuizNext');
+    const btnSkip = document.getElementById('btnQuizSkip');
+    const btnExit = document.getElementById('btnQuizExit');
+    const btnTranslate = document.getElementById('btnQuizTranslate');
 
-  // Option Click
-  optionButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (isAnswered) return;
-      isAnswered = true;
-      const selectedIndex = parseInt(btn.getAttribute('data-index'), 10);
-      const isCorrect = (selectedIndex === q.correctIndex);
+    // Option Click
+    optionButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (isAnswered) return;
+        isAnswered = true;
+        const selectedIndex = parseInt(btn.getAttribute('data-index'), 10);
+        const isCorrect = (selectedIndex === q.correctIndex);
 
-      QuizEngine.saveAnswer(q.id, selectedIndex, isCorrect);
-
-      // Disable further clicks
-      optionButtons.forEach(b => b.disabled = true);
-
-      if (isCorrect) {
-        btn.classList.add('opt-correct');
-        const icon = btn.querySelector('.web-option-feedback-icon');
-        if (icon) icon.textContent = '✓';
-        showToast('Correct Answer! 🎯');
-      } else {
-        btn.classList.add('opt-wrong');
-        const wrongIcon = btn.querySelector('.web-option-feedback-icon');
-        if (wrongIcon) wrongIcon.textContent = '✕';
-
-        // Highlight correct option in green
-        const correctBtn = optionButtons[q.correctIndex];
-        if (correctBtn) {
-          correctBtn.classList.add('opt-correct');
-          const correctIcon = correctBtn.querySelector('.web-option-feedback-icon');
-          if (correctIcon) correctIcon.textContent = '✓';
-        }
-        showToast('Wrong Answer ❌');
-      }
-
-      // Update score pill
-      const scorePill = document.getElementById('webTestScorePill');
-      if (scorePill) scorePill.textContent = `Score: ${QuizEngine.getScore()}`;
-
-      // Show solution box (Card stays on screen as user requested!)
-      if (explanationBox) {
-        explanationBox.classList.add('show');
-        explanationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-
-      // Enable and highlight Next button
-      if (btnNext) {
-        btnNext.removeAttribute('disabled');
-        btnNext.classList.add('active');
-        btnNext.focus();
-      }
-    });
-  });
-
-  // Next Question / Short Click
-  if (btnNext) {
-    btnNext.addEventListener('click', () => {
-      nextShort();
-    });
-  }
-
-  // Skip Question Click
-  if (btnSkip) {
-    btnSkip.addEventListener('click', () => nextShort());
-  }
-
-  // Exit Test Click
-  if (btnExit) {
-    btnExit.addEventListener('click', () => nextShort());
-  }
-
-  // Hindi / English Translate Toggle Click
-  if (btnTranslate) {
-    btnTranslate.addEventListener('click', async () => {
-      const isHindiNow = QuizEngine.toggleHindi();
-      btnTranslate.classList.toggle('active-hindi', isHindiNow);
-      btnTranslate.textContent = isHindiNow ? 'A / अ English' : 'अ / A Hindi';
-
-      // Check if we need background fetch from Google Translate
-      if (isHindiNow && !QuizEngine.translationCache[q.id] && (!q.question_hi || !q.options_hi)) {
-        const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
-        if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
-          QuizEngine.translationCache[q.id] = embedded;
+        if (isCorrect) {
+          batchScore++;
+          btn.classList.add('opt-correct');
+          const icon = btn.querySelector('.web-option-feedback-icon');
+          if (icon) icon.textContent = '✓';
+          showToast('Correct Answer! 🎯');
         } else {
-          showToast('Translating to Hindi...');
-          const trQ = await QuizEngine.fetchGoogleTranslate(q.question);
-          const trOpts = await Promise.all((q.options || []).map(o => QuizEngine.fetchGoogleTranslate(o)));
-          QuizEngine.translationCache[q.id] = { question: trQ, options: trOpts };
-        }
-      }
+          btn.classList.add('opt-wrong');
+          const wrongIcon = btn.querySelector('.web-option-feedback-icon');
+          if (wrongIcon) wrongIcon.textContent = '✕';
 
-      // Re-render current quiz card in new language
-      renderQuizCard(q);
+          // Highlight correct option in green
+          const correctBtn = optionButtons[q.correctIndex];
+          if (correctBtn) {
+            correctBtn.classList.add('opt-correct');
+            const correctIcon = correctBtn.querySelector('.web-option-feedback-icon');
+            if (correctIcon) correctIcon.textContent = '✓';
+          }
+          showToast('Wrong Answer ❌');
+        }
+
+        QuizEngine.saveAnswer(q.id, selectedIndex, isCorrect);
+
+        // Update score pill
+        const scorePill = document.getElementById('webTestScorePill');
+        if (scorePill) scorePill.textContent = `Score: ${batchScore}/${totalQ}`;
+
+        // Disable options
+        optionButtons.forEach(b => b.disabled = true);
+
+        // Show solution box
+        if (explanationBox) {
+          explanationBox.classList.add('show');
+          explanationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Enable Next / Finish button
+        if (btnNext) {
+          btnNext.removeAttribute('disabled');
+          btnNext.classList.add('active');
+          btnNext.focus();
+        }
+      });
     });
+
+    // Next Button Click
+    if (btnNext) {
+      btnNext.addEventListener('click', () => {
+        if (currentBatchIndex < totalQ - 1) {
+          currentBatchIndex++;
+          renderCurrentBatchQuestion();
+        } else {
+          showToast(`Drill Completed! 🎯 ${batchScore}/${totalQ}`);
+          nextShort();
+        }
+      });
+    }
+
+    // Skip Button Click
+    if (btnSkip) {
+      btnSkip.addEventListener('click', () => {
+        if (currentBatchIndex < totalQ - 1) {
+          currentBatchIndex++;
+          renderCurrentBatchQuestion();
+        } else {
+          nextShort();
+        }
+      });
+    }
+
+    // Exit Button Click
+    if (btnExit) {
+      btnExit.addEventListener('click', () => nextShort());
+    }
+
+    // Hindi Translation Toggle Click
+    if (btnTranslate) {
+      btnTranslate.addEventListener('click', async () => {
+        const isHindiNow = QuizEngine.toggleHindi();
+        btnTranslate.classList.toggle('active-hindi', isHindiNow);
+        btnTranslate.textContent = isHindiNow ? 'A / अ English' : 'अ / A Hindi';
+
+        if (isHindiNow && !QuizEngine.translationCache[q.id] && (!q.question_hi || !q.options_hi)) {
+          const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
+          if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
+            QuizEngine.translationCache[q.id] = embedded;
+          } else {
+            showToast('Translating to Hindi...');
+            const trQ = await QuizEngine.fetchGoogleTranslate(q.question);
+            const trOpts = await Promise.all((q.options || []).map(o => QuizEngine.fetchGoogleTranslate(o)));
+            QuizEngine.translationCache[q.id] = { question: trQ, options: trOpts };
+          }
+        }
+
+        renderCurrentBatchQuestion();
+      });
+    }
   }
+
+  renderCurrentBatchQuestion();
+}
+
+function renderQuizCard(q) {
+  renderQuizBatch([q]);
 }
 
 // Next short (Infinite)

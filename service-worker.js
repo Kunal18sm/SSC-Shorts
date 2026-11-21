@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ssc-shorts-v19';
+const CACHE_NAME = 'ssc-shorts-v20';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const ASSETS_TO_CACHE = [
   './js/shorts-data.js',
   './js/quiz-engine.js',
   './data/all_questions.js',
+  './data/mongodb_quizzes.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon.svg'
