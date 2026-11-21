@@ -35,11 +35,29 @@ function initApp() {
   loadCategory('all');
 }
 
-// Replenish queue infinitely with random shorts
+let totalShortsViewed = 0;
+let quizCounter = 0;
+
+// Replenish queue infinitely with random shorts + 1 Quiz every 7 shorts!
 function replenishQueue(category) {
   const freshShuffledBatch = ShortsStore.getRandomStream(category);
   if (freshShuffledBatch.length > 0) {
-    shortQueue.push(...freshShuffledBatch);
+    freshShuffledBatch.forEach(shortItem => {
+      shortQueue.push(shortItem);
+      totalShortsViewed++;
+
+      // User requirement: "ye quize har 7 shorts ke baad aana chaiye"
+      if (typeof QuizEngine !== 'undefined' && category !== 'saved' && totalShortsViewed % QuizEngine.SHORTS_BETWEEN_QUIZ === 0) {
+        const quizQ = QuizEngine.getNextQuizQuestion(category, quizCounter++);
+        if (quizQ) {
+          shortQueue.push({
+            type: 'quiz',
+            id: `quiz_${quizQ.id}_${Date.now()}`,
+            quizData: quizQ
+          });
+        }
+      }
+    });
   }
 }
 
@@ -161,7 +179,16 @@ function renderActiveShort() {
     replenishQueue(currentCategory);
   }
 
-  const short = shortQueue[currentQueueIndex];
+  const currentItem = shortQueue[currentQueueIndex];
+  if (!currentItem) return;
+
+  // Check if current item is a Quiz Card!
+  if (currentItem.type === 'quiz') {
+    renderQuizCard(currentItem.quizData);
+    return;
+  }
+
+  const short = currentItem;
   const isBookmarked = ShortsStore.isBookmarked(short.id);
 
   // Mark as seen so this video is never repeated until all are seen!
@@ -326,6 +353,187 @@ function renderActiveShort() {
   }
 }
 
+// Render QuizeApp Native SSC Quiz Card (Exact QuizeApp Look & Feel)
+function renderQuizCard(q) {
+  // Clear any existing video progress timer
+  clearInterval(window._progressTimer);
+
+  const quota = QuizEngine.getTodayQuota();
+  const qIndexInQuota = quota.findIndex(item => item.id === q.id);
+  const displayQNum = qIndexInQuota >= 0 ? qIndexInQuota + 1 : ((currentQueueIndex % 30) + 1);
+  const isHindi = QuizEngine.isHindiMode;
+
+  // Prepare question text and options based on current language mode
+  let displayQ = q.question;
+  let displayOpts = [...q.options];
+
+  if (isHindi) {
+    if (q.question_hi && q.options_hi && q.options_hi.length === q.options.length) {
+      displayQ = q.question_hi;
+      displayOpts = q.options_hi;
+    } else if (QuizEngine.translationCache[q.id]) {
+      displayQ = QuizEngine.translationCache[q.id].question;
+      displayOpts = QuizEngine.translationCache[q.id].options;
+    } else {
+      const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
+      if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
+        displayQ = embedded.question;
+        displayOpts = embedded.options;
+      }
+    }
+  } else {
+    const eng = QuizEngine.extractEmbeddedEnglishQuestion(q);
+    if (eng) {
+      displayQ = eng.question;
+      displayOpts = eng.options;
+    }
+  }
+
+  const badges = ['A', 'B', 'C', 'D'];
+  const categoryTag = q.category || (q.subject ? q.subject.toUpperCase() : 'SSC EXAM');
+
+  shortsFeedEl.innerHTML = `
+    <div class="short-card">
+      <div class="quiz-card-wrapper" id="quizCardWrapper">
+        <!-- Top bar with Quota & Hindi Translation -->
+        <div class="quiz-top-bar">
+          <div class="quiz-quota-badge">
+            <span>📝</span> Daily Quiz: ${displayQNum}/30
+          </div>
+          <button class="btn-test-translate ${isHindi ? 'active-hindi' : ''}" id="btnQuizTranslate">
+            ${isHindi ? 'A / अ English' : 'अ / A Hindi'}
+          </button>
+        </div>
+
+        <!-- Question Card -->
+        <div class="web-question-card">
+          <span class="question-category-tag">${categoryTag}</span>
+          <div class="question-text-content" id="quizQuestionText">${displayQ}</div>
+          ${q.diagram ? `<div class="web-question-diagram">${q.diagram}</div>` : ''}
+        </div>
+
+        <!-- Options Grid -->
+        <div class="web-options-grid" id="quizOptionsGrid">
+          ${displayOpts.map((opt, i) => `
+            <button class="web-option-btn" data-index="${i}">
+              <span class="web-option-badge">${badges[i]}</span>
+              <span class="web-option-text">${opt}</span>
+              <span class="web-option-feedback-icon" id="fb_icon_${i}"></span>
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Solution & Explanation Box (Slides open on answer) -->
+        <div class="web-explanation-box" id="quizExplanationBox">
+          <div class="active-explanation-card">
+            <div class="active-exp-header">
+              <span class="active-exp-title">💡 Solution & Short Trick</span>
+              <span class="active-exp-pill">${categoryTag.split(':')[0]}</span>
+            </div>
+            <div class="active-exp-content" id="quizExplanationContent">${q.explanation || 'Option ' + badges[q.correctIndex] + ' is the correct answer.'}</div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="quiz-footer-actions">
+          <button class="btn-quiz-skip" id="btnQuizSkip" onclick="nextShort()">Skip Quiz ➔</button>
+          <button class="btn-quiz-next" id="btnQuizNext" onclick="nextShort()">Next Short ➔</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Attach events
+  let isAnswered = false;
+  const optionButtons = document.querySelectorAll('.web-option-btn');
+  const explanationBox = document.getElementById('quizExplanationBox');
+  const btnNext = document.getElementById('btnQuizNext');
+  const btnSkip = document.getElementById('btnQuizSkip');
+  const btnTranslate = document.getElementById('btnQuizTranslate');
+
+  // Option Click
+  optionButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (isAnswered) return;
+      isAnswered = true;
+      const selectedIndex = parseInt(btn.getAttribute('data-index'), 10);
+      const isCorrect = (selectedIndex === q.correctIndex);
+
+      QuizEngine.saveAnswer(q.id, selectedIndex, isCorrect);
+
+      // Disable further clicks
+      optionButtons.forEach(b => b.disabled = true);
+
+      if (isCorrect) {
+        btn.classList.add('opt-correct');
+        const icon = btn.querySelector('.web-option-feedback-icon');
+        if (icon) icon.textContent = '✓';
+        showToast('Correct Answer! 🎯');
+      } else {
+        btn.classList.add('opt-wrong');
+        const wrongIcon = btn.querySelector('.web-option-feedback-icon');
+        if (wrongIcon) wrongIcon.textContent = '✕';
+
+        // Highlight correct option in green
+        const correctBtn = optionButtons[q.correctIndex];
+        if (correctBtn) {
+          correctBtn.classList.add('opt-correct');
+          const correctIcon = correctBtn.querySelector('.web-option-feedback-icon');
+          if (correctIcon) correctIcon.textContent = '✓';
+        }
+        showToast('Wrong Answer ❌');
+      }
+
+      // Show solution box (Card stays on screen as user requested!)
+      if (explanationBox) {
+        explanationBox.classList.add('show');
+        explanationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      // Highlight Next button to invite user to proceed when ready
+      if (btnNext) {
+        btnNext.focus();
+        btnNext.style.transform = 'scale(1.04)';
+      }
+    });
+  });
+
+  // Next Short Click
+  if (btnNext) {
+    btnNext.addEventListener('click', () => nextShort());
+  }
+
+  // Skip Quiz Click
+  if (btnSkip) {
+    btnSkip.addEventListener('click', () => nextShort());
+  }
+
+  // Hindi / English Translate Toggle Click
+  if (btnTranslate) {
+    btnTranslate.addEventListener('click', async () => {
+      const isHindiNow = QuizEngine.toggleHindi();
+      btnTranslate.classList.toggle('active-hindi', isHindiNow);
+      btnTranslate.textContent = isHindiNow ? 'A / अ English' : 'अ / A Hindi';
+
+      // Check if we need background fetch from Google Translate
+      if (isHindiNow && !QuizEngine.translationCache[q.id] && (!q.question_hi || !q.options_hi)) {
+        const embedded = QuizEngine.extractEmbeddedHindiQuestion(q);
+        if (embedded && /[ऀ-ॿ]/.test(embedded.question)) {
+          QuizEngine.translationCache[q.id] = embedded;
+        } else {
+          showToast('Translating to Hindi...');
+          const trQ = await QuizEngine.fetchGoogleTranslate(q.question);
+          const trOpts = await Promise.all((q.options || []).map(o => QuizEngine.fetchGoogleTranslate(o)));
+          QuizEngine.translationCache[q.id] = { question: trQ, options: trOpts };
+        }
+      }
+
+      // Re-render current quiz card in new language
+      renderQuizCard(q);
+    });
+  }
+}
+
 // Next short (Infinite)
 function nextShort() {
   if (currentCategory === 'saved') return;
@@ -449,6 +657,8 @@ function setupEventListeners() {
   let wheelLock = false;
   window.addEventListener('wheel', (e) => {
     if (currentCategory === 'saved') return; // let user scroll thumbnail grid normally
+    // On quiz card, allow natural reading/scrolling of explanation and options
+    if (document.querySelector('.quiz-card-wrapper')) return;
     if (wheelLock) return;
     wheelLock = true;
     setTimeout(() => { wheelLock = false; }, 320);
